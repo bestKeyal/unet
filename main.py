@@ -96,7 +96,7 @@ def dice_fun(im1, im2):
 #                testPredictions)  # sending the test image path so same name will be used for saving masks
 
 def testModel(model_path, test_path, save_path):
-    modelUnet = unet(pretrained_weights=model_path, input_size=(windowLen, windowLen, 1))
+    modelUnet = dr_unet(pretrained_weights=model_path, input_size=(windowLen, windowLen, 1))
     testGener = testGenerator(test_path, target_size=(windowLen, windowLen, 1))
     testGener = enumerate(testGener)
 
@@ -105,19 +105,20 @@ def testModel(model_path, test_path, save_path):
     flag = True
 
     for batch_start_idx in range(0, total, batch_size):
-        if flag is False:
-            break
         cur_batch_id = batch_start_idx // batch_size + 1
         print('Ready to test in Batch: ', cur_batch_id)
         test_images = []
         for _ in range(batch_size):
-            if flag is False:
-                break
-            i, img = next(testGener)
-            if img is None:
+            try:
+                i, img = next(testGener)
+                test_images.append(img)
+            except Exception as e:
+                print(e)
                 flag = False
                 break
-            test_images.append(img)
+
+        if not test_images:
+            break
 
         test_images_np = np.array(test_images)
         print('Test data shape: ', test_images_np.shape)
