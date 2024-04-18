@@ -244,12 +244,15 @@ if __name__ == '__main__':
                   str(SaveDir_crops_cv))
 
         # Creating full image mask from the crops predictions
-        if cvI < num_CV - 1:
-            subjectNums_cvI_testing = subject_nums_shaffled[
-                                      cvI * int(numSubj / num_CV):cvI * int(numSubj / num_CV) + int(numSubj / num_CV)]
+        if num_CV != 1:
+            if cvI < num_CV - 1:
+                subjectNums_cvI_testing = subject_nums_shaffled[
+                                          cvI * int(numSubj / num_CV):cvI * int(numSubj / num_CV) + int(numSubj / num_CV)]
+            else:
+                subjectNums_cvI_testing = subject_nums_shaffled[cvI * int(numSubj / num_CV):numSubj]
         else:
-            subjectNums_cvI_testing = subject_nums_shaffled[cvI * int(numSubj / num_CV):numSubj]
-
+            subjectNums_cvI_testing = subject_nums_shaffled[: int(numSubj * 0.075)]
+            subjectNums_cvI_trainVal = subject_nums_shaffled[int(numSubj * 0.075):]
         # Finding the predictions or ICH segmentation for the whole slice
         print(
             'Combining the crops masks to find the full CT mask after performing morphological operations and saving the results to: ' + str(
