@@ -38,8 +38,8 @@ def Jaccard_img(y_true, y_pred):  # https://www.jeremyjordan.me/evaluating-image
     for i in range(y_true.shape[0]):
         if np.sum(y_true[
                       i]) > 0:  # Considering only the slices that have hemorrhage regions, if y_true is all zeros -> iou_score=nan.
-            im1 = np.asarray(y_true[i]).astype(np.bool)
-            im2 = np.asarray(y_pred[i]).astype(np.bool)
+            im1 = np.asarray(y_true[i]).astype(np.bool_)
+            im2 = np.asarray(y_pred[i]).astype(np.bool_)
             intersection = np.logical_and(im1, im2)
             union = np.logical_or(im1, im2)
             iou_score += np.sum(intersection) / np.sum(union)
@@ -64,8 +64,8 @@ def dice_img(y_true, y_pred):
 
 
 def dice_fun(im1, im2):
-    im1 = np.asarray(im1).astype(np.bool)
-    im2 = np.asarray(im2).astype(np.bool)
+    im1 = np.asarray(im1).astype(np.bool_)
+    im2 = np.asarray(im2).astype(np.bool_)
 
     if im1.shape != im2.shape:
         raise ValueError("Shape mismatch: im1 and im2 must have the same shape.")
@@ -96,11 +96,10 @@ def dice_fun(im1, im2):
 #                testPredictions)  # sending the test image path so same name will be used for saving masks
 
 def testModel(model_path, test_path, save_path):
-    modelUnet = dr_unet(pretrained_weights=model_path, input_size=(windowLen, windowLen, 1))
+    modelUnet = unet(pretrained_weights=model_path, input_size=(windowLen, windowLen, 1))
     testGener = testGenerator(test_path, target_size=(windowLen, windowLen, 1))
     testGener = enumerate(testGener)
 
-    batch_size = 32
     total = len(glob.glob(os.path.join(test_path, "*.png")))
     flag = True
 
@@ -136,6 +135,12 @@ data_gen_args = dict(
     fill_mode="nearest"
 )
 
+num_CV = 1  # 这里是交叉验证的折数
+NumEpochs = 0  # 这里控制训练的epoch数量
+NumEpochEval = 1  # validated the model each NumEpochEval epochs
+batch_size = 100  # batch_size的设置
+learning_rateI = 1e-5
+
 if __name__ == '__main__':
     #############################################Training Parameters#######################################################
     import argparse
@@ -147,12 +152,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 
-    num_CV = 1        # 这里是交叉验证的折数
-    NumEpochs = 150    # 这里控制训练的epoch数量
-    NumEpochEval = 1  # validated the model each NumEpochEval epochs
-    batch_size = 100   # batch_size的设置
-    learning_rateI = 1e-5
-    decayI = learning_rateI / NumEpochs
+
+    if NumEpochs != 0:
+        decayI = learning_rateI / NumEpochs
+    else:
+        decayI = 0
+
     detectionSen = 20 * 20  # labeling each slice as ICH if hemorrhage is detected in detectionSen pixels
     thresholdI = 0.5
     detectionThreshold = thresholdI * 256  # threshold on detection probability
@@ -190,6 +195,7 @@ if __name__ == '__main__':
     with open(str(Path(crossvalid_dir, 'ICH_DataSegmentV1.pkl')), 'rb') as Dataset1:
         [hemorrhageDiagnosisArray, AllCTscans, testMasks, subject_nums_shaffled] = pickle.load(Dataset1)
     del AllCTscans
+
     testMasks = np.uint8(testMasks)
     testMasksAvg = np.where(np.sum(np.sum(testMasks, axis=1), axis=1) > detectionSen, 1, 0)  #
     testPredictions = np.zeros((testMasks.shape[0], imageLen, imageLen), dtype=np.uint8)  # predicted segmentation
@@ -198,7 +204,7 @@ if __name__ == '__main__':
     print('Starting the cross-validation!!')
     # num_CV = 1时，只会使用CV0中的数据进行训练
     for cvI in range(0, num_CV):
-        save_model_path = str(Path(SaveDir, 'unet_CV' + str(cvI) + '.keras'))
+        save_model_path = str(Path(SaveDir, 'DR_UNet_CV' + str(cvI) + '.keras'))
 
         print("Working on fold #" + str(cvI) + ", starting training U-Net")
         SaveDir_crops_cv = Path(SaveDir, 'crops', 'CV' + str(cvI))
@@ -227,6 +233,7 @@ if __name__ == '__main__':
         model_checkpoint = ModelCheckpoint(save_model_path,
                                         mode='min',
                                         verbose=1, save_freq=NumEpochEval)
+
         history1 = modelUnet.fit(trainGener, epochs=NumEpochs,
                                  steps_per_epoch=int(n_imagesTrain / batch_size),
                                  validation_data=valGener, validation_steps=n_imagesValidate,
@@ -306,7 +313,6 @@ if __name__ == '__main__':
                 testPredictions[sliceInds[0][counterSlice]] = np.uint8(np.where(img > (0.5 * 256), 1, 0))
                 counterSlice += 1
 
-        K.clear_session()
 
     CVtestPredictionsAvg = np.where(np.sum(np.sum(testPredictions, axis=1), axis=1) > detectionSen, 1, 0)  #
 

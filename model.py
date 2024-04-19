@@ -2,6 +2,42 @@ from keras import Model
 from tensorflow import keras
 import tensorflow as tf
 from keras.layers import *
+from keras import backend as K
+
+
+def jaccard(y_true, y_pred):
+    y_true = K.flatten(y_true)
+    y_pred = K.flatten(y_pred)
+
+    y_true_expand = tf.expand_dims(y_true, axis=0)
+    y_pred_expand = tf.expand_dims(y_pred, axis=-1)
+
+    fenzi = tf.tensordot(y_true_expand, y_pred_expand)
+
+    fenmu_1 = tf.reduce_sum(y_true, keepdims=True)
+
+    fenmu_2 = tf.ones_like(y_true_expand) - y_true_expand
+    fenmu_2 = tf.tensordot(fenmu_2, y_pred_expand)
+
+    return tf.reduce_mean((tf.constant([[1]], dtype=tf.float32) - (fenzi / (fenmu_1 + fenmu_2))), axis=-1)
+
+
+def voe(y_true, y_pred):
+    return 1 - jaccard(y_true, y_pred)
+
+
+def specificity(y_true, y_pred):
+    true_negatives = K.sum(K.round(K.clip((1 - y_true) * (1 - y_pred), 0, 1)))
+    possible_negatives = K.sum(K.round(K.clip(1 - y_true, 0, 1)))
+    spec = true_negatives / (possible_negatives + K.epsilon())
+    return spec
+
+
+# 敏感性（召回率）
+recall = tf.keras.metrics.Recall(name='recall')
+
+# 精确度
+precision = tf.keras.metrics.Precision(name='precision')
 
 
 def dice_loss(y_true, y_pred, smooth=1e-6):
@@ -94,7 +130,20 @@ def unet(pretrained_weights=None, input_size=(128, 128, 1), learningRate=1e-5, d
 
     model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-5),
                   loss=bce_dice_loss,
-                  metrics=['accuracy', bce_dice_loss, dice_loss, iou_coefficient, r_squared])
+                  metrics=[
+                      'accuracy',
+                      bce_dice_loss,
+                      dice_loss,
+                      iou_coefficient,
+                      r_squared,
+                      jaccard,
+                      recall,
+                      precision,
+                      specificity,
+                      voe,
+                  ]
+
+                  )
 
     model.summary()
 
