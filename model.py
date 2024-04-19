@@ -142,7 +142,7 @@ def unet(pretrained_weights=None, input_size=(128, 128, 1), learningRate=1e-5, d
 
                   )
 
-    model.summary()
+    # model.summary()
 
     if (pretrained_weights):
         model.load_weights(pretrained_weights)
