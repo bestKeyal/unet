@@ -4,7 +4,6 @@ import tensorflow as tf
 from keras.layers import *
 from keras import backend as K
 
-
 def jaccard(y_true, y_pred):
     tp = tf.reduce_sum(tf.multiply(y_true, y_pred), 1)
     fn = tf.reduce_sum(tf.multiply(y_true, 1 - y_pred), 1)
@@ -18,7 +17,7 @@ def voe(y_true, y_pred):
 def specificity(y_true, y_pred):
     true_negatives = tf.reduce_sum(tf.round(tf.clip_by_value((1 - y_true) * (1 - y_pred), 0, 1)))
     possible_negatives = tf.reduce_sum(tf.round(tf.clip_by_value(1 - y_true, 0, 1)))
-    spec = true_negatives / (possible_negatives + np.epsilon)
+    spec = true_negatives / (possible_negatives + K.epsilon)
     return spec
 
 
