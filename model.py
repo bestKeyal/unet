@@ -3,12 +3,21 @@ from tensorflow import keras
 import tensorflow as tf
 from keras.layers import *
 from keras import backend as K
+from tensorflow import keras
+import tensorflow as tf
+
+from keras import backend as K
+from keras import losses
+import numpy as np
+import tensorflow as tf
+
 
 def jaccard(y_true, y_pred):
     tp = tf.reduce_sum(tf.multiply(y_true, y_pred), 1)
     fn = tf.reduce_sum(tf.multiply(y_true, 1 - y_pred), 1)
     fp = tf.reduce_sum(tf.multiply(1 - y_true, y_pred), 1)
     return 1 - (tp / (tp + fn + fp))
+
 
 def voe(y_true, y_pred):
     return 1 - jaccard(y_true, y_pred)
@@ -19,7 +28,6 @@ def specificity(y_true, y_pred):
     possible_negatives = tf.reduce_sum(tf.round(tf.clip_by_value(1 - y_true, 0, 1)))
     spec = true_negatives / (possible_negatives + tf.constant(K.epsilon()))
     return spec
-
 
 
 # 敏感性（召回率）
@@ -67,6 +75,7 @@ def r_squared(y_true, y_pred):
     # R^2 计算
     r2 = 1 - ss_res / ss_total
     return r2
+
 
 
 def unet(pretrained_weights=None, input_size=(128, 128, 1), learningRate=1e-5, decayRate=1e-7):

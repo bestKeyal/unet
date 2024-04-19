@@ -9,8 +9,6 @@ from prepare_data import *
 from data_process import *
 from model import *
 
-
-
 """
 
 如果能用github，直接在kaggle连接github把工程文件下载下来，更新和修改都很方便
@@ -19,6 +17,7 @@ from model import *
 这个文件将会在kaggle上面运行，运行结果可以下载下来，再进行血肿体积预测
 
 """
+
 
 def Sens(y_true, y_pred):
     cm1 = metrics.confusion_matrix(y_true, y_pred, labels=[1, 0])  # labels =[1,0] [positive [Hemorrhage], negative]
@@ -50,6 +49,18 @@ def Jaccard_img(y_true, y_pred):  # https://www.jeremyjordan.me/evaluating-image
         return np.nan
 
 
+def VOE(y_true, y_pred):
+    # Calculate the Jaccard Index for all image slices.
+    iou_score = Jaccard_img(y_true, y_pred)
+
+    # If Jaccard Index is not NaN, calculate VOE.
+    if not np.isnan(iou_score):
+        voe = 1 - iou_score
+        return voe
+    else:
+        return np.nan
+
+
 def dice_img(y_true, y_pred):
     dice = 0
     counter = 0
@@ -74,6 +85,7 @@ def dice_fun(im1, im2):
     intersection = np.logical_and(im1, im2)
 
     return 2. * intersection.sum() / (im1.sum() + im2.sum())
+
 
 # def testModel(model_path, test_path, save_path):
 #     """
@@ -125,6 +137,7 @@ def testModel(model_path, test_path, save_path):
         res = modelUnet.predict(test_images_np, batch_size=1, verbose=1)
         saveResult(test_path, save_path, res, start_idx=batch_start_idx, batch_size=batch_size)
 
+
 data_gen_args = dict(
     rotation_range=20,
     width_shift_range=0.1,
@@ -144,14 +157,13 @@ learning_rateI = 1e-5
 if __name__ == '__main__':
     #############################################Training Parameters#######################################################
     import argparse
+
     parser = argparse.ArgumentParser(description='Process the pretrained weights file path.')
 
     parser.add_argument('--w', dest='pretrained_weights', type=str, default=None,
                         help='Path to the pretrained weights file (default: None)')
 
     args = parser.parse_args()
-
-
 
     if NumEpochs != 0:
         decayI = learning_rateI / NumEpochs
@@ -231,8 +243,8 @@ if __name__ == '__main__':
                                      target_size=(128, 128))
         modelUnet = unet(pretrained_weights=pretrained_weights, input_size=(windowLen, windowLen, 1))
         model_checkpoint = ModelCheckpoint(save_model_path,
-                                        mode='min',
-                                        verbose=1, save_freq=NumEpochEval)
+                                           mode='min',
+                                           verbose=1, save_freq=NumEpochEval)
 
         history1 = modelUnet.fit(trainGener, epochs=NumEpochs,
                                  steps_per_epoch=int(n_imagesTrain / batch_size),
@@ -254,7 +266,8 @@ if __name__ == '__main__':
         if num_CV != 1:
             if cvI < num_CV - 1:
                 subjectNums_cvI_testing = subject_nums_shaffled[
-                                          cvI * int(numSubj / num_CV):cvI * int(numSubj / num_CV) + int(numSubj / num_CV)]
+                                          cvI * int(numSubj / num_CV):cvI * int(numSubj / num_CV) + int(
+                                              numSubj / num_CV)]
             else:
                 subjectNums_cvI_testing = subject_nums_shaffled[cvI * int(numSubj / num_CV):numSubj]
         else:
@@ -313,7 +326,6 @@ if __name__ == '__main__':
                 testPredictions[sliceInds[0][counterSlice]] = np.uint8(np.where(img > (0.5 * 256), 1, 0))
                 counterSlice += 1
 
-
     CVtestPredictionsAvg = np.where(np.sum(np.sum(testPredictions, axis=1), axis=1) > detectionSen, 1, 0)  #
 
     # Calculating the Final Testing Results for all CV iterations, results for pixel-wise classification
@@ -330,6 +342,8 @@ if __name__ == '__main__':
         class_report[subjI, 6] = Sens(testMasksAvg, CVtestPredictionsAvg)  # TPR is also known as sensitivity
         class_report[subjI, 7] = Speci(testMasksAvg,
                                        CVtestPredictionsAvg)  # FPR is one minus the specificity or true negative rate
+        class_report[subjI, 8] = VOE(testMasksAvg,
+                                     CVtestPredictionsAvg)
 
     class_report[21, :] = np.nan  # this subject has chronic ICH so exclude from results
     print(
