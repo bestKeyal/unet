@@ -77,7 +77,6 @@ def r_squared(y_true, y_pred):
     return r2
 
 
-
 def unet(pretrained_weights=None, input_size=(128, 128, 1), learningRate=1e-5, decayRate=1e-7):
     ModInputs = Input(input_size)
     conv1 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ModInputs)
