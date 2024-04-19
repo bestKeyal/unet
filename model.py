@@ -6,21 +6,10 @@ from keras import backend as K
 
 
 def jaccard(y_true, y_pred):
-    y_true = K.flatten(y_true)
-    y_pred = K.flatten(y_pred)
-
-    y_true_expand = tf.expand_dims(y_true, axis=0)
-    y_pred_expand = tf.expand_dims(y_pred, axis=-1)
-
-    fenzi = tf.tensordot(y_true_expand, y_pred_expand)
-
-    fenmu_1 = tf.reduce_sum(y_true, keepdims=True)
-
-    fenmu_2 = tf.ones_like(y_true_expand) - y_true_expand
-    fenmu_2 = tf.tensordot(fenmu_2, y_pred_expand)
-
-    return tf.reduce_mean((tf.constant([[1]], dtype=tf.float32) - (fenzi / (fenmu_1 + fenmu_2))), axis=-1)
-
+    tp = tf.reduce_sum(tf.multiply(y_true, y_pred), 1)
+    fn = tf.reduce_sum(tf.multiply(y_true, 1 - y_pred), 1)
+    fp = tf.reduce_sum(tf.multiply(1 - y_true, y_pred), 1)
+    return 1 - (tp / (tp + fn + fp))
 
 def voe(y_true, y_pred):
     return 1 - jaccard(y_true, y_pred)
