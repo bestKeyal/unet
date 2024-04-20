@@ -149,7 +149,7 @@ data_gen_args = dict(
 )
 
 num_CV = 1  # 这里是交叉验证的折数
-NumEpochs = 50  # 这里控制训练的epoch数量
+NumEpochs = 7  # 这里控制训练的epoch数量
 NumEpochEval = 0  # validated the model each NumEpochEval epochs
 batch_size = 50  # batch_size的设置
 learning_rateI = 1e-5
