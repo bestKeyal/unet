@@ -151,7 +151,7 @@ data_gen_args = dict(
 num_CV = 1  # 这里是交叉验证的折数
 NumEpochs = 300  # 这里控制训练的epoch数量
 NumEpochEval = 0  # validated the model each NumEpochEval epochs
-batch_size = 100  # batch_size的设置
+batch_size = 50  # batch_size的设置
 learning_rateI = 1e-5
 
 if __name__ == '__main__':
