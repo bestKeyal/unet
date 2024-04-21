@@ -149,7 +149,7 @@ data_gen_args = dict(
 )
 
 num_CV = 1  # 这里是交叉验证的折数
-NumEpochs = 20  # 这里控制训练的epoch数量
+NumEpochs = 10  # 这里控制训练的epoch数量
 NumEpochEval = 0  # validated the model each NumEpochEval epochs
 batch_size = 50  # batch_size的设置
 learning_rateI = 1e-5
@@ -395,5 +395,7 @@ if __name__ == '__main__':
                 img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel_opening)
                 imsave(Path(SaveDir_cv, str(subjectNums_cvI_testing[subItest])
                             + '_' + str(sliceI) + '.png'), np.uint8(img))
+
                 testPredictions[sliceInds[0][counterSlice]] = np.uint8(np.where(img > (0.5 * 256), 1, 0))
+
                 counterSlice += 1
