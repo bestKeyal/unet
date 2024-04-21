@@ -14,7 +14,7 @@ def window_ct(ct_scan, w_level=40, w_width=120):
     for s in range(num_slices):
         slice_s = ct_scan[:, :, s]
         slice_s = (slice_s - w_min) * (
-                255 / (w_max - w_min))  # or slice_s = (slice_s - (w_level-(w_width/2)))*(255/(w_width))
+                    255 / (w_max - w_min))  # or slice_s = (slice_s - (w_level-(w_width/2)))*(255/(w_width))
         slice_s[slice_s < 0] = 0
         slice_s[slice_s > 255] = 255
         # slice_s=np.rot90(slice_s)
@@ -133,13 +133,12 @@ def prepare_data(dataset_zip_dir, crossvalid_dir, numSubj, imageLen, windowLen, 
                             [subject_nums_shaffled[i] for i in range(cvI * int(numSubj / NumCV), numSubj)])
                 else:
                     subjectNums_cvI_testing = [80, 22]
-                    subjectNums_cvI_trainVal = [x for x in subject_nums_shaffled if x not in [80, 22]]
+                    subjectNums_cvI_trainVal = [x for x in subject_nums_shaffled if x not in[80, 22]]
                 counterI = 0
 
                 # Training CT scans
                 total_trainval = len(subjectNums_cvI_trainVal)
-                for subItrain in list(range(0, int(0.1 * total_trainval))) + list(
-                        range(int(0.3 * total_trainval), total_trainval)):  # take only the 3 folds for training
+                for subItrain in range(int(0.2 * total_trainval), total_trainval):  # take only the 3 folds for training
                     sliceNums = hemorrhage_diagnosis_array[
                         hemorrhage_diagnosis_array[:, 0] == subjectNums_cvI_trainVal[subItrain], 1]
 
@@ -171,8 +170,8 @@ def prepare_data(dataset_zip_dir, crossvalid_dir, numSubj, imageLen, windowLen, 
 
                 # Validation CT scans
                 counterI = 0
-                for subIvalidate in range(int(0.2 * total_trainval),
-                                          int(0.3 * total_trainval)):  # take only the first fold for validation
+
+                for subIvalidate in range(0, int(0.1 * total_trainval)):
                     sliceNums = hemorrhage_diagnosis_array[
                         hemorrhage_diagnosis_array[:, 0] == subjectNums_cvI_trainVal[subIvalidate], 1]
 
