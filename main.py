@@ -149,7 +149,7 @@ data_gen_args = dict(
 )
 
 num_CV = 1  # 这里是交叉验证的折数
-NumEpochs = 10  # 这里控制训练的epoch数量
+NumEpochs = 0  # 这里控制训练的epoch数量
 NumEpochEval = 0  # validated the model each NumEpochEval epochs
 batch_size = 50  # batch_size的设置
 learning_rateI = 1e-5
@@ -383,13 +383,13 @@ if __name__ == '__main__':
                 CTslicePredict = CTslicePredict / windowOcc * 255
                 # CTslicePredict = CTslicePredict * 255
                 img = np.uint8(CTslicePredict)
-                # imsave(Path(SaveDir_full_cv, str(subjectNums_cvI_testing[subItest])
-                #             + '_' + str(sliceI) + '.png'), img)
+                imsave(Path(SaveDir_full_cv, str(subjectNums_cvI_testing[subItest])
+                            + '_' + str(sliceI) + '.png'), img)
 
                 img = np.int16(np.where(img > detectionThreshold, 255, 0))
 
-                imsave(Path(SaveDir_full_cv, str(subjectNums_cvI_testing[subItest])
-                            + '_' + str(sliceI) + '.png'), img)
+                # imsave(Path(SaveDir_full_cv, str(subjectNums_cvI_testing[subItest])
+                #             + '_' + str(sliceI) + '.png'), img)
 
                 img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel_closing)  # Filling the gaps
                 img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel_opening)
