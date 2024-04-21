@@ -381,12 +381,16 @@ if __name__ == '__main__':
                         counterCrop = counterCrop + 1
 
                 CTslicePredict = CTslicePredict / windowOcc * 255
-                CTslicePredict = CTslicePredict * 255
+                # CTslicePredict = CTslicePredict * 255
                 img = np.uint8(CTslicePredict)
+                # imsave(Path(SaveDir_full_cv, str(subjectNums_cvI_testing[subItest])
+                #             + '_' + str(sliceI) + '.png'), img)
+
+                img = np.int16(np.where(img > detectionThreshold, 255, 0))
+
                 imsave(Path(SaveDir_full_cv, str(subjectNums_cvI_testing[subItest])
                             + '_' + str(sliceI) + '.png'), img)
 
-                img = np.int16(np.where(img > detectionThreshold, 255, 0))
                 img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel_closing)  # Filling the gaps
                 img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel_opening)
                 imsave(Path(SaveDir_cv, str(subjectNums_cvI_testing[subItest])
