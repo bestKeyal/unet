@@ -276,115 +276,115 @@ if __name__ == '__main__':
             # subjectNums_cvI_trainVal = [x for x in subject_nums_shaffled if x not in [80, 27]]
             # Finding the predictions or ICH segmentation for the whole slice
 
-
-        def read_window(file_path):
-            window_img = imread(file_path)
-            return window_img / 255
-
-
-        def save_image(file_path, image_array):
-            imsave(file_path, np.uint8(image_array))
-
-
-        def process_prediction(slice_predict, threshold, kernel_close, kernel_open):
-            predict_img = np.uint8(slice_predict)
-            binary_img = np.int16(np.where(predict_img > threshold, 255, 0))
-            closed_img = cv2.morphologyEx(binary_img, cv2.MORPH_CLOSE, kernel_close)
-            opened_img = cv2.morphologyEx(closed_img, cv2.MORPH_OPEN, kernel_open)
-            return np.uint8(opened_img)
-
-
-        def combine_predictions(subject_num, slice_index, save_dir_full, save_dir_crops, save_dir, num_moves, image_len,
-                                window_len, kernel_close, kernel_open, threshold):
-            # Read and combine window images
-            CTslicePredict = np.zeros((image_len, image_len))
-            windowOcc = np.zeros((image_len, image_len))
-
-            for i in range(num_moves):
-                for j in range(num_moves):
-                    counter_crop = i * num_moves + j
-                    file_name = f"{subject_num}_{slice_index}_{counter_crop}.png"
-                    window = read_window(Path(save_dir_crops, file_name))
-
-                    start_i = int(i * image_len / (num_moves + 1))
-                    start_j = int(j * image_len / (num_moves + 1))
-                    end_i = start_i + window_len
-                    end_j = start_j + window_len
-
-                    CTslicePredict[start_i:end_i, start_j:end_j] += window
-                    windowOcc[start_i:end_i, start_j:end_j] += 1
-
-            # Normalize and save the full CT slice prediction
-            CTslicePredict = (CTslicePredict / windowOcc) * 255
-            full_img_path = Path(save_dir_full, f"{subject_num}_{slice_index}.png")
-            save_image(full_img_path, CTslicePredict)
-
-            # Process prediction and save the processed image
-            processed_img = process_prediction(CTslicePredict, threshold, kernel_close, kernel_open)
-            processed_img_path = Path(save_dir, f"{subject_num}_{slice_index}.png")
-            save_image(processed_img_path, processed_img)
-            return processed_img
-
-        for subject_num in subjectNums_cvI_testing:
-            slicenum_s = hemorrhageDiagnosisArray[hemorrhageDiagnosisArray[:, 0] == subject_num, 1]
-            slice_inds = np.where(hemorrhageDiagnosisArray[:, 0] == subject_num)[0]
-
-            for slice_index, counter_slice in zip(slicenum_s, slice_inds):
-                processed_prediction = combine_predictions(subject_num, slice_index, SaveDir_full_cv, SaveDir_crops_cv,
-                                                           SaveDir_cv, num_Moves, imageLen, windowLen, kernel_closing,
-                                                           kernel_opening, detectionThreshold)
-                testPredictions[counter_slice] = np.where(processed_prediction > (0.5 * 255), 1, 0)
-
-        # print(
-        #     'Combining the crops masks to find the full CT mask after performing morphological operations and saving the results to: ' + str(
-        #         SaveDir_full_cv))
-        # for subItest in range(0, len(subjectNums_cvI_testing)):
-        #     slicenum_s = hemorrhageDiagnosisArray[
-        #         hemorrhageDiagnosisArray[:, 0] == subjectNums_cvI_testing[subItest], 1]
-        #     sliceInds = np.where(hemorrhageDiagnosisArray[:, 0] == subjectNums_cvI_testing[
-        #         subItest])  # using the slice index to keep the predictions have the same sequence as the ground truth.
-        #     counterSlice = 0
-        #     for sliceI in range(slicenum_s.size):
-        #         # reading the predicted segmentation for each window
-        #         CTslicePredict = np.zeros((imageLen, imageLen))
-        #         windowOcc = np.zeros((imageLen, imageLen))  # number of predictions for each pixel in the CT scan
-        #         counterCrop = 0
-        #         for i in range(num_Moves):
-        #             for j in range(num_Moves):
-        #                 windowI = imread(Path(SaveDir_crops_cv, str(subjectNums_cvI_testing[subItest])
-        #                                       + '_' + str(sliceI) + '_' + str(counterCrop) + '.png'))
-        #                 windowI = windowI / 255
-        #                 CTslicePredict[
-        #                 int(i * imageLen / (num_Moves + 1)):int(i * imageLen / (num_Moves + 1) + windowLen),
-        #                 int(j * imageLen / (num_Moves + 1)):int(
-        #                     j * imageLen / (num_Moves + 1) + windowLen)] = CTslicePredict[
-        #                                                                    int(i * imageLen / (num_Moves + 1)):int(
-        #                                                                        i * imageLen / (
-        #                                                                                num_Moves + 1) + windowLen),
-        #                                                                    int(j * imageLen / (num_Moves + 1)):int(
-        #                                                                        j * imageLen / (
-        #                                                                                num_Moves + 1) + windowLen)] + windowI
-        #                 windowOcc[int(i * imageLen / (num_Moves + 1)):int(i * imageLen / (num_Moves + 1) + windowLen),
-        #                 int(j * imageLen / (num_Moves + 1)):int(
-        #                     j * imageLen / (num_Moves + 1) + windowLen)] = windowOcc[
-        #                                                                    int(i * imageLen / (num_Moves + 1)):int(
-        #                                                                        i * imageLen / (
-        #                                                                                num_Moves + 1) + windowLen),
-        #                                                                    int(j * imageLen / (num_Moves + 1)):int(
-        #                                                                        j * imageLen / (
-        #                                                                                num_Moves + 1) + windowLen)] + 1
-        #                 counterCrop = counterCrop + 1
         #
-        #         CTslicePredict = CTslicePredict / windowOcc * 255
-        #         img = np.uint8(CTslicePredict)
-        #         imsave(Path(SaveDir_full_cv, str(subjectNums_cvI_testing[subItest])
-        #                     + '_' + str(sliceI) + '.png'), img)
+        # def read_window(file_path):
+        #     window_img = imread(file_path)
+        #     return window_img / 255
         #
-        #         img = np.int16(np.where(img > detectionThreshold, 255, 0))
-        #         img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel_closing)  # Filling the gaps
-        #         img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel_opening)
-        #         imsave(Path(SaveDir_cv, str(subjectNums_cvI_testing[subItest])
-        #                     + '_' + str(sliceI) + '.png'), np.uint8(img))
-        #         testPredictions[sliceInds[0][counterSlice]] = np.uint8(np.where(img > (0.5 * 256), 1, 0))
-        #         counterSlice += 1
         #
+        # def save_image(file_path, image_array):
+        #     imsave(file_path, np.uint8(image_array))
+        #
+        #
+        # def process_prediction(slice_predict, threshold, kernel_close, kernel_open):
+        #     predict_img = np.uint8(slice_predict)
+        #     binary_img = np.int16(np.where(predict_img > threshold, 255, 0))
+        #     closed_img = cv2.morphologyEx(binary_img, cv2.MORPH_CLOSE, kernel_close)
+        #     opened_img = cv2.morphologyEx(closed_img, cv2.MORPH_OPEN, kernel_open)
+        #     return np.uint8(opened_img)
+        #
+        #
+        # def combine_predictions(subject_num, slice_index, save_dir_full, save_dir_crops, save_dir, num_moves, image_len,
+        #                         window_len, kernel_close, kernel_open, threshold):
+        #     # Read and combine window images
+        #     CTslicePredict = np.zeros((image_len, image_len))
+        #     windowOcc = np.zeros((image_len, image_len))
+        #
+        #     for i in range(num_moves):
+        #         for j in range(num_moves):
+        #             counter_crop = i * num_moves + j
+        #             file_name = f"{subject_num}_{slice_index}_{counter_crop}.png"
+        #             window = read_window(Path(save_dir_crops, file_name))
+        #
+        #             start_i = int(i * image_len / (num_moves + 1))
+        #             start_j = int(j * image_len / (num_moves + 1))
+        #             end_i = start_i + window_len
+        #             end_j = start_j + window_len
+        #
+        #             CTslicePredict[start_i:end_i, start_j:end_j] += window
+        #             windowOcc[start_i:end_i, start_j:end_j] += 1
+        #
+        #     # Normalize and save the full CT slice prediction
+        #     CTslicePredict = (CTslicePredict / windowOcc) * 255
+        #     full_img_path = Path(save_dir_full, f"{subject_num}_{slice_index}.png")
+        #     save_image(full_img_path, CTslicePredict)
+        #
+        #     # Process prediction and save the processed image
+        #     processed_img = process_prediction(CTslicePredict, threshold, kernel_close, kernel_open)
+        #     processed_img_path = Path(save_dir, f"{subject_num}_{slice_index}.png")
+        #     save_image(processed_img_path, processed_img)
+        #     return processed_img
+        #
+        # for subject_num in subjectNums_cvI_testing:
+        #     slicenum_s = hemorrhageDiagnosisArray[hemorrhageDiagnosisArray[:, 0] == subject_num, 1]
+        #     slice_inds = np.where(hemorrhageDiagnosisArray[:, 0] == subject_num)[0]
+        #
+        #     for slice_index, counter_slice in zip(slicenum_s, slice_inds):
+        #         processed_prediction = combine_predictions(subject_num, slice_index, SaveDir_full_cv, SaveDir_crops_cv,
+        #                                                    SaveDir_cv, num_Moves, imageLen, windowLen, kernel_closing,
+        #                                                    kernel_opening, detectionThreshold)
+        #         testPredictions[counter_slice] = np.where(processed_prediction > (0.5 * 255), 1, 0)
+
+        print(
+            'Combining the crops masks to find the full CT mask after performing morphological operations and saving the results to: ' + str(
+                SaveDir_full_cv))
+        for subItest in range(0, len(subjectNums_cvI_testing)):
+            slicenum_s = hemorrhageDiagnosisArray[
+                hemorrhageDiagnosisArray[:, 0] == subjectNums_cvI_testing[subItest], 1]
+            sliceInds = np.where(hemorrhageDiagnosisArray[:, 0] == subjectNums_cvI_testing[
+                subItest])  # using the slice index to keep the predictions have the same sequence as the ground truth.
+            counterSlice = 0
+            for sliceI in range(slicenum_s.size):
+                # reading the predicted segmentation for each window
+                CTslicePredict = np.zeros((imageLen, imageLen))
+                windowOcc = np.zeros((imageLen, imageLen))  # number of predictions for each pixel in the CT scan
+                counterCrop = 0
+                for i in range(num_Moves):
+                    for j in range(num_Moves):
+                        windowI = imread(Path(SaveDir_crops_cv, str(subjectNums_cvI_testing[subItest])
+                                              + '_' + str(sliceI) + '_' + str(counterCrop) + '.png'))
+                        windowI = windowI / 255
+                        CTslicePredict[
+                        int(i * imageLen / (num_Moves + 1)):int(i * imageLen / (num_Moves + 1) + windowLen),
+                        int(j * imageLen / (num_Moves + 1)):int(
+                            j * imageLen / (num_Moves + 1) + windowLen)] = CTslicePredict[
+                                                                           int(i * imageLen / (num_Moves + 1)):int(
+                                                                               i * imageLen / (
+                                                                                       num_Moves + 1) + windowLen),
+                                                                           int(j * imageLen / (num_Moves + 1)):int(
+                                                                               j * imageLen / (
+                                                                                       num_Moves + 1) + windowLen)] + windowI
+                        windowOcc[int(i * imageLen / (num_Moves + 1)):int(i * imageLen / (num_Moves + 1) + windowLen),
+                        int(j * imageLen / (num_Moves + 1)):int(
+                            j * imageLen / (num_Moves + 1) + windowLen)] = windowOcc[
+                                                                           int(i * imageLen / (num_Moves + 1)):int(
+                                                                               i * imageLen / (
+                                                                                       num_Moves + 1) + windowLen),
+                                                                           int(j * imageLen / (num_Moves + 1)):int(
+                                                                               j * imageLen / (
+                                                                                       num_Moves + 1) + windowLen)] + 1
+                        counterCrop = counterCrop + 1
+
+                CTslicePredict = CTslicePredict / windowOcc * 255
+                img = np.uint8(CTslicePredict)
+                imsave(Path(SaveDir_full_cv, str(subjectNums_cvI_testing[subItest])
+                            + '_' + str(sliceI) + '.png'), img)
+
+                img = np.int16(np.where(img > detectionThreshold, 255, 0))
+                img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel_closing)  # Filling the gaps
+                img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel_opening)
+                imsave(Path(SaveDir_cv, str(subjectNums_cvI_testing[subItest])
+                            + '_' + str(sliceI) + '.png'), np.uint8(img))
+                testPredictions[sliceInds[0][counterSlice]] = np.uint8(np.where(img > (0.5 * 256), 1, 0))
+                counterSlice += 1
+
