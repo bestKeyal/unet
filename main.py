@@ -216,7 +216,7 @@ if __name__ == '__main__':
     print('Starting the cross-validation!!')
     # num_CV = 1时，只会使用CV0中的数据进行训练
     for cvI in range(0, num_CV):
-        save_model_path = str(Path(SaveDir, 'DR_UNet_CV' + str(cvI) + '.keras'))
+        save_model_path = str(Path(SaveDir, 'UNet_CV' + str(cvI) + '.keras'))
 
         print("Working on fold #" + str(cvI) + ", starting training U-Net")
         SaveDir_crops_cv = Path(SaveDir, 'crops', 'CV' + str(cvI))
