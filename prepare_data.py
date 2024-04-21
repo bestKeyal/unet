@@ -138,7 +138,8 @@ def prepare_data(dataset_zip_dir, crossvalid_dir, numSubj, imageLen, windowLen, 
 
                 # Training CT scans
                 total_trainval = len(subjectNums_cvI_trainVal)
-                for subItrain in range(int(0.2 * total_trainval), total_trainval):  # take only the 3 folds for training
+                for subItrain in list(range(0, int(0.1 * total_trainval))) + list(
+                        range(int(0.3 * total_trainval), total_trainval)):  # take only the 3 folds for training
                     sliceNums = hemorrhage_diagnosis_array[
                         hemorrhage_diagnosis_array[:, 0] == subjectNums_cvI_trainVal[subItrain], 1]
 
@@ -171,7 +172,7 @@ def prepare_data(dataset_zip_dir, crossvalid_dir, numSubj, imageLen, windowLen, 
                 # Validation CT scans
                 counterI = 0
 
-                for subIvalidate in range(0, int(0.1 * total_trainval)):
+                for subIvalidate in range(int(0.1 * total_trainval), int(0.3 * total_trainval)):
                     sliceNums = hemorrhage_diagnosis_array[
                         hemorrhage_diagnosis_array[:, 0] == subjectNums_cvI_trainVal[subIvalidate], 1]
 
