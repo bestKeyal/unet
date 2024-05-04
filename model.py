@@ -164,7 +164,8 @@ if __name__ == '__main__':
 
     num_samples = 10
     input_size = (128, 128, 1)
-    x_train, y_train = generate_fake_data(num_samples, input_size)
+    # x_train, y_train = generate_fake_data(num_samples, input_size)
 
     model = unet(input_size=input_size)
-    model.fit(x_train, y_train, epochs=5, batch_size=1)
+    # model.fit(x_train, y_train, epochs=5, batch_size=1)
+    model.summary()
