@@ -271,7 +271,7 @@ if __name__ == '__main__':
             else:
                 subjectNums_cvI_testing = subject_nums_shaffled[cvI * int(numSubj / num_CV):numSubj]
         else:
-            subjectNums_cvI_testing = [80, 22]
+            subjectNums_cvI_testing = [80, 41]
 
         #
         # def read_window(file_path):
@@ -396,3 +396,36 @@ if __name__ == '__main__':
                 testPredictions[sliceInds[0][counterSlice]] = np.uint8(np.where(img > (0.5 * 256), 1, 0))
 
                 counterSlice += 1
+
+    CVtestPredictionsAvg = np.where(np.sum(np.sum(testPredictions, axis=1), axis=1) > detectionSen, 1, 0)  #
+
+    # Calculating the Final Testing Results for all CV iterations, results for pixel-wise classification
+    class_report = np.zeros((numSubj, 14))
+    for subjI in range(numSubj):
+        sliceInds = np.where(hemorrhageDiagnosisArray[:, 0] == subjI)[0]
+        class_report[subjI, 0] = Jaccard_img(testMasks[sliceInds], testPredictions[sliceInds])
+        class_report[subjI, 1] = dice_img(testMasks[sliceInds], testPredictions[sliceInds])
+        # Results for slice-wise classification
+        class_report[subjI, 2] = metrics.accuracy_score(testMasksAvg, CVtestPredictionsAvg)
+        class_report[subjI, 3] = metrics.recall_score(testMasksAvg, CVtestPredictionsAvg, pos_label=1)
+        class_report[subjI, 4] = metrics.precision_score(testMasksAvg, CVtestPredictionsAvg, pos_label=1)
+        class_report[subjI, 5] = metrics.f1_score(testMasksAvg, CVtestPredictionsAvg, pos_label=1)
+        class_report[subjI, 6] = Sens(testMasksAvg, CVtestPredictionsAvg)  # TPR is also known as sensitivity
+        class_report[subjI, 7] = Speci(testMasksAvg,
+                                       CVtestPredictionsAvg)  # FPR is one minus the specificity or true negative rate
+
+    class_report[21, :] = np.nan  # this subject has chronic ICH so exclude from results
+    print(
+        "Final pixel-wise testing: mean Jaccard %.3f (max %.3f, min %.3f, +- %.3f), mean Dice %.3f (max %.3f, min %.3f, +- %.3f)" % (
+            np.nanmean(class_report[:, 0]), np.nanmax(class_report[:, 0]), np.nanmin(class_report[:, 0]),
+            np.nanstd(class_report[:, 0]),
+            np.nanmean(class_report[:, 1]), np.nanmax(class_report[:, 1]), np.nanmin(class_report[:, 1]),
+            np.nanstd(class_report[:, 1])))
+    print(
+        "Final testing: Accuracy %.3f (max %.3f, min %.3f, +- %.3f), Sensi %.4f (max %.3f, min %.3f, +- %.3f), Speci %.4f (max %.3f, min %.3f, +- %.3f))." % (
+            np.nanmean(class_report[:, 2]), np.nanmax(class_report[:, 2]), np.nanmin(class_report[:, 2]),
+            np.nanstd(class_report[:, 2])
+            , np.nanmean(class_report[:, 3]), np.nanmax(class_report[:, 3]), np.nanmin(class_report[:, 3]),
+            np.nanstd(class_report[:, 3])
+            , np.nanmean(class_report[:, 3]), np.nanmax(class_report[:, 3]), np.nanmin(class_report[:, 3]),
+            np.nanstd(class_report[:, 3])))
